@@ -1,10 +1,14 @@
 import express from 'express';
 const router = express.Router();
 import { registerUser,login } from './controllers/userController.mjs';
-import { createBook, getBooks } from './controllers/bookController.mjs';
+import { createBook, getBooks, getBookById, updateBookById, deleteBook } from './controllers/bookController.mjs';
+import { authenticateToken, authorization } from './auth/authentication.mjs';
 router.post('/register', registerUser);
 router.post('/login', login);
-router.post('/books', createBook);
-router.get('/books', getBooks);
+router.post('/books', authenticateToken, createBook);
+router.get('/books', authenticateToken, getBooks);
+router.get('/books/:bookId', authenticateToken, authorization, getBookById);
+router.put('/books/:bookId', authenticateToken, authorization, updateBookById);
+router.delete('/books/:bookId', authenticateToken, authorization, deleteBook);
 
 export default router;

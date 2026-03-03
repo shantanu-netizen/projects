@@ -49,12 +49,12 @@ const login=async (req,res)=>{
         if (!isMatch) {
             return res.status(400).send({ message: "failed", error: "Invalid credentials" });
         }
-        const token = jwt.sign({ id: user._id,email: user.email }, config.secretToken);
+        const token = jwt.sign({ id: user._id,email: user.email }, config.secretToken, { expiresIn: '1h' });
         if(!token){
             return res.status(500).send({ message: "failed", error: "Internal Server Error" });
         }
         res.setHeader("Authorization", `Bearer ${token}`);
-        return res.status(200).send({ message: "success", data: user});
+        return res.status(200).send({ message: "success",data: { token }});
     } catch (error) {
         return res.status(500).send({ message: "failed", error: "Internal Server Error" });
     }
