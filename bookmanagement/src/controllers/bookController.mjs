@@ -5,9 +5,9 @@ import mongoose from "mongoose";
 const createBook = async (req, res) => {
   try {
     const data = req.body;
-    const { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = data;
+    const { title, excerpt, userId, ISBN, category, subcategory, releasedAt } =
+      data;
 
-    // 1. Validate request body is not empty
     if (Object.keys(data).length === 0) {
       return res.status(400).send({
         status: false,
@@ -15,16 +15,35 @@ const createBook = async (req, res) => {
       });
     }
 
-    // 2. Validate mandatory fields
-    if (!title) return res.status(400).send({ status: false, message: "Title is required" });
-    if (!excerpt) return res.status(400).send({ status: false, message: "Excerpt is required" });
-    if (!userId) return res.status(400).send({ status: false, message: "UserId is required" });
-    if (!ISBN) return res.status(400).send({ status: false, message: "ISBN is required" });
-    if (!category) return res.status(400).send({ status: false, message: "Category is required" });
-    if (!subcategory) return res.status(400).send({ status: false, message: "Subcategory is required" });
-    if (!releasedAt) return res.status(400).send({ status: false, message: "Released date is required" });
+    if (!title)
+      return res
+        .status(400)
+        .send({ status: false, message: "Title is required" });
+    if (!excerpt)
+      return res
+        .status(400)
+        .send({ status: false, message: "Excerpt is required" });
+    if (!userId)
+      return res
+        .status(400)
+        .send({ status: false, message: "UserId is required" });
+    if (!ISBN)
+      return res
+        .status(400)
+        .send({ status: false, message: "ISBN is required" });
+    if (!category)
+      return res
+        .status(400)
+        .send({ status: false, message: "Category is required" });
+    if (!subcategory)
+      return res
+        .status(400)
+        .send({ status: false, message: "Subcategory is required" });
+    if (!releasedAt)
+      return res
+        .status(400)
+        .send({ status: false, message: "Released date is required" });
 
-    // 2.5. Validate releasedAt format (YYYY-MM-DD)
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(releasedAt)) {
       return res.status(400).send({
@@ -33,7 +52,6 @@ const createBook = async (req, res) => {
       });
     }
 
-    // 3. Validate userId format
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).send({
         status: false,
@@ -41,7 +59,6 @@ const createBook = async (req, res) => {
       });
     }
 
-    // 4. Check if user exists
     const userExists = await userModel.findById(userId);
     if (!userExists) {
       return res.status(400).send({
@@ -50,17 +67,19 @@ const createBook = async (req, res) => {
       });
     }
 
-    // 5. Check for unique title and ISBN
     const isTitleUnique = await bookModel.findOne({ title });
     if (isTitleUnique) {
-      return res.status(400).send({ status: false, message: "Title already exists" });
+      return res
+        .status(400)
+        .send({ status: false, message: "Title already exists" });
     }
     const isISBNUnique = await bookModel.findOne({ ISBN });
     if (isISBNUnique) {
-      return res.status(400).send({ status: false, message: "ISBN already exists" });
+      return res
+        .status(400)
+        .send({ status: false, message: "ISBN already exists" });
     }
 
-    // 6. Create book
     const bookData = {
       title,
       excerpt,
@@ -73,7 +92,6 @@ const createBook = async (req, res) => {
 
     const book = await bookModel.create(bookData);
 
-    // 7. Success response
     return res.status(201).send({
       status: true,
       message: "Book created successfully",
@@ -95,7 +113,9 @@ const getBooks = async (req, res) => {
     const filter = { isDeleted: false };
     if (userId) {
       if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).send({ status: false, message: "Invalid userId format" });
+        return res
+          .status(400)
+          .send({ status: false, message: "Invalid userId format" });
       }
       filter.userId = userId;
     }
@@ -111,17 +131,17 @@ const getBooks = async (req, res) => {
       return res.status(404).send({ status: false, message: "No books found" });
     }
 
-    return res.status(200).send({ status: true, message: "Success", data: books });
+    return res
+      .status(200)
+      .send({ status: true, message: "Success", data: books });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
 };
 
-
-
 const getBookById = async (req, res) => {
   try {
-    const bookId = req.params.id;
+    const bookId = req.params.bookId;
 
     // 1. Validate bookId format
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
@@ -132,7 +152,11 @@ const getBookById = async (req, res) => {
     }
 
     // 2. Find book by ID
-    const book = await bookModel.findById(bookId).select("_id title excerpt userId category subcategory releasedAt ISBN reviews");
+    const book = await bookModel
+      .findById(bookId)
+      .select(
+        "_id title excerpt userId category subcategory releasedAt ISBN reviews",
+      );
 
     if (!book) {
       return res.status(404).send({
@@ -180,7 +204,10 @@ const updateBookById = async (req, res) => {
 
     // 3. Validate and check unique constraints for title
     if (title && title !== book.title) {
-      const titleExists = await bookModel.findOne({ title, _id: { $ne: bookId } });
+      const titleExists = await bookModel.findOne({
+        title,
+        _id: { $ne: bookId },
+      });
       if (titleExists) {
         return res.status(400).send({
           status: false,
@@ -191,7 +218,10 @@ const updateBookById = async (req, res) => {
 
     // 4. Validate and check unique constraints for ISBN
     if (ISBN && ISBN !== book.ISBN) {
-      const isbnExists = await bookModel.findOne({ ISBN, _id: { $ne: bookId } });
+      const isbnExists = await bookModel.findOne({
+        ISBN,
+        _id: { $ne: bookId },
+      });
       if (isbnExists) {
         return res.status(400).send({
           status: false,
@@ -214,8 +244,13 @@ const updateBookById = async (req, res) => {
     // 6. Update book
     const updatedBook = await bookModel.findByIdAndUpdate(
       bookId,
-      { ...(title && { title }), ...(excerpt && { excerpt }), ...(releasedAt && { releasedAt }), ...(ISBN && { ISBN }) },
-      { new: true }
+      {
+        ...(title && { title }),
+        ...(excerpt && { excerpt }),
+        ...(releasedAt && { releasedAt }),
+        ...(ISBN && { ISBN }),
+      },
+      { new: true },
     );
 
     // 7. Success response
@@ -254,7 +289,11 @@ const deleteBook = async (req, res) => {
     }
 
     // 3. Mark book as deleted
-    await bookModel.findByIdAndUpdate(bookId, { isDeleted: true }, { new: true });
+    await bookModel.findByIdAndUpdate(
+      bookId,
+      { isDeleted: true },
+      { new: true },
+    );
 
     // 4. Success response
     return res.status(200).send({
